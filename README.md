@@ -12,12 +12,11 @@ per-machine overlay, composed via Claude Code's native `@import` mechanism.
 | `machines/example.md` | Template for an optional per-machine overlay (SSH routing, local paths, machine-specific gotchas). Copy it to `machines/<hostname>.md` and fill in your own — real `machines/*.md` files are gitignored, so personal details never get committed here. |
 | `deploy.sh` | Generates `~/.claude/CLAUDE.md` (Claude Code's global user memory) from `rules.md`, plus your local `machines/<hostname>.md` if one exists. |
 | `sync.sh` | Convenience wrapper: `git pull --rebase` + `deploy.sh`. Wire up as a daily cron job to keep multiple machines in sync. |
-| `skills/matt-pocock-skills` | [mattpocock/skills](https://github.com/mattpocock/skills) submodule — engineering skills for Claude Code. |
 
 ## Setup
 
 ```bash
-git clone --recurse-submodules https://github.com/oneafrikan/claude-rules.git ~/claude-rules
+git clone https://github.com/oneafrikan/claude-rules.git ~/claude-rules
 cp ~/claude-rules/machines/example.md ~/claude-rules/machines/$(hostname -s).md   # optional
 ~/claude-rules/deploy.sh
 ```
