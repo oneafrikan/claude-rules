@@ -283,7 +283,7 @@ This closes the gap where prior work goes unnoticed at session start, and a PR s
 ## Standard Operating Procedure
 
 - ALWAYS, at the start of every session, identify every directory that will need to be accessed to complete the work. List them all upfront and ask for permission to access them before starting. This lets the user work in parallel without per-action permission prompts.
-- ALWAYS, ALWAYS, ALWAYS comment your code — assume future you will need the comments to know what's going on.
+- ALWAYS, ALWAYS, ALWAYS comment your code — assume future you or Gareth will need the comments to know what's going on.
 - ALWAYS create a TODO list when working on complex tasks to track progress — use TODO.md.
 - ALWAYS create a README.md file if one does not exist. Make it human readable.
 - ALWAYS create a CLAUDE.md file for future sessions, so they are easier to pick up.
