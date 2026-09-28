@@ -24,6 +24,12 @@ cp ~/claude-rules/machines/example.md ~/claude-rules/machines/$(hostname -s).md 
 `deploy.sh` is idempotent and backs up any pre-existing hand-written
 `~/.claude/CLAUDE.md` before overwriting.
 
+**Using this repo as a submodule of a private dev-env repo, with an addendum +
+per-machine overlay layered on top of `rules.md`?** Use that repo's own
+`deploy.sh`/`sync.sh` instead (e.g. `claude-private/sync.sh`) — this repo's
+`deploy.sh`/`sync.sh` only know about `rules.md` + `machines/<host>.md` and will
+silently drop anything else layered on top.
+
 ## How it loads
 
 Claude Code reads `~/.claude/CLAUDE.md` for every session and resolves `@path`
