@@ -255,10 +255,24 @@ Apply this to all phrasing that frames a question as belonging to the user: "onl
 
 **Don't default to doing everything in the main thread — check for a specialist first.**
 
-Before doing non-trivial specialist work directly (security review, architecture design, database tuning, frontend, DevOps, research, etc.):
-- Check available agent types and skills for one that matches the domain.
-- If a good match exists, delegate to it rather than doing the work in the main agent.
-- Only do the work directly if no specialist fits, or the task is small enough that delegating costs more than it saves.
+**Default: delegate all technical work to a specialist agent.** Check the Agent tool's list for a match before touching code, config, infra, tests, docs, or research.
+- The `grid-*` agents (the-grid) are the first choice for technical work; `core-*` agents cover platform/dev-env, research, and triage.
+- Rough routing:
+  - backend / frontend / fullstack → `grid-backend-dev` / `grid-frontend-dev` / `grid-fullstack-engineer`
+  - CI/CD, deploy, secrets → `grid-devops`
+  - tests, fixtures, eval harness → `grid-sdet`; release gate / verification → `grid-qa-engineer`
+  - security → `grid-security-reviewer`
+  - data → `grid-data-engineer` / `grid-data-analyst` / `grid-data-scientist`
+  - LLM runtime / prompts → `grid-ai-engineer` / `grid-prompt-engineer`
+  - docs → `grid-technical-writer`
+  - shell, dotfiles, bootstrap, cross-OS → `core-platform-engineer`
+  - research → `core-researcher`
+  - smallest-possible diff → `grid-ponytail`
+  - multi-step features → `grid-tech-lead` to coordinate, rather than hand-sequencing specialists
+- Delegating is how context stays small per agent. The main session orchestrates: scopes the task, picks the agent, reviews the result.
+- Specialist briefs must be self-contained: goal, files, constraints, success check.
+- The main session does the work itself only when it is very trivial (a one-line edit, a single read-only lookup) or no specialist fits.
+- When unsure whether it's trivial, delegate. Main-session work on "small" tasks has repeatedly needed debugging once the real specialists picked it up.
 
 This keeps output at specialist quality and keeps the main agent focused on orchestration rather than every task itself.
 
