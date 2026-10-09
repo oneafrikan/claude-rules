@@ -11,7 +11,7 @@ per-machine overlay, composed via Claude Code's native `@import` mechanism.
 | `rules.md` | The behavioral core — communication style, coding discipline, verification rules, SOP. Edit once, applies everywhere you deploy it. Contains no machine-specific or personal information. |
 | `machines/example.md` | Template for an optional per-machine overlay (SSH routing, local paths, machine-specific gotchas). Copy it to `machines/<hostname>.md` and fill in your own — real `machines/*.md` files are gitignored, so personal details never get committed here. |
 | `deploy.sh` | Generates `~/.claude/CLAUDE.md` (Claude Code's global user memory) from `rules.md`, plus your local `machines/<hostname>.md` if one exists. Accepts flags for layering private files on top (`--machines-dir`, `--import`, `--require-machine`, `--harnesses`; see [Setup](#setup)). |
-| `sync.sh` | Convenience wrapper: `git pull --rebase` + `deploy.sh`. Wire up as a daily cron job to keep multiple machines in sync. |
+| `sync.sh` | Convenience wrapper: `git pull --rebase` + `deploy.sh` (no flags, so it does not pass `--harnesses`; logs to `sync.log`, gitignored, last 100 lines kept). Wire up as a daily cron job to keep multiple machines in sync. |
 
 ## Setup
 
@@ -51,7 +51,8 @@ the literal `@~/...` lines (OpenCode even falls back to `~/.claude/CLAUDE.md` wh
 has no file of its own), or silently skip the import. With `--harnesses`, after writing
 `~/.claude/CLAUDE.md` as usual, `deploy.sh` also writes a **flat** copy — `rules.md`,
 then each `--import` file, then the machine overlay, concatenated with a
-`<!-- source: ... -->` marker before each — to every target below.
+`<!-- source: ... -->` marker before each, under a three-line generated-by header — to
+every target below.
 
 A target is written only if its harness binary is on `PATH`, except OpenCode, which is
 always written (so it never falls back to the `@`-import `CLAUDE.md`).
@@ -66,6 +67,14 @@ always written (so it never falls back to the `@`-import `CLAUDE.md`).
 
 The table lives in one place, commented with each harness's doc source, in
 `deploy.sh` (`harness_targets`).
+
+**Size limit (Antigravity CLI):** `agy` truncates any single rule file over 24,000 bytes
+(on line boundaries) and shares a ~20,000-token budget across always-on and global rules.
+The composed flat file is currently ~22.4 KB (`wc -c ~/.codex/AGENTS.md`; `rules.md`
+alone is ~17.7 KB), so growth in `rules.md` or in layered `--import` files can silently
+cut the tail — the machine overlay comes last. Known, deliberately not handled by
+`deploy.sh` yet. Sources: <https://www.antigravity.google/docs/rules/> and the rules text
+embedded in the `agy` 1.3.2 binary.
 
 - Files are mode `0600` (the content can include a private layer), written via a temp
   file + `mv`, and a pre-existing hand-written file is backed up as `<file>.bak.<timestamp>`.
@@ -90,7 +99,9 @@ The table lives in one place, commented with each harness's doc source, in
 
 Removing a row from the table does not delete files it wrote earlier; delete those by hand.
 
-**Keeping a machine in sync:** run `sync.sh` from cron (example: daily at 08:00).
+**Keeping a machine in sync:** run `sync.sh` from cron (example: daily at 08:00). It runs
+`deploy.sh` without flags, so flat copies for other harnesses are only refreshed by calling
+`deploy.sh --harnesses` yourself (e.g. from your own wrapper script).
 
 ```
 0 8 * * * ~/claude-rules/sync.sh >> /dev/null 2>&1
@@ -100,7 +111,8 @@ Removing a row from the table does not delete files it wrote earlier; delete tho
 
 Claude Code reads `~/.claude/CLAUDE.md` for every session and resolves `@path`
 imports (recursively, `~` supported), so `rules.md` — and your machine overlay,
-if you added one — get merged in at load time.
+if you added one — get merged in at load time. Other harnesses don't resolve imports;
+see [Other harnesses](#other-harnesses---harnesses).
 
 ## The rules
 
