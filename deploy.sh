@@ -21,8 +21,8 @@
 #                         file of every other coding harness found on PATH — see the
 #                         HARNESS_TARGETS table below. Default off.
 #
-# Why flat: only Claude Code resolves @imports in a global file; Codex, Gemini, OpenCode
-# etc. would see the literal "@~/..." lines (or, for Gemini/Copilot, skip the import).
+# Why flat: only Claude Code resolves @imports in a global file; Codex, OpenCode etc.
+# would see the literal "@~/..." lines (or, for Copilot, skip the import).
 #
 # Idempotent: re-running just rewrites the generated file(s); flat copies are left
 # untouched (byte-identical, no new backup) when their content has not changed.
@@ -154,17 +154,24 @@ fi
 # Rows are unquoted-heredoc lines, so $HOME / ${VAR:-default} expand; '#' lines are
 # comments. Doc sources are in the comments (checked 2026-10-09).
 #
-# Not generated (no file-based global rules, or too small a cap): Cursor (User Rules
-# are GUI-only), Copilot on github.com (personal-instructions text box), Windsurf
-# (6,000-char global cap), Aider (no global instructions file), Cline (manual).
+# Not generated: Cursor (User Rules are GUI-only), Copilot on github.com (personal-
+# instructions text box), Windsurf (6,000-char global cap), Aider (no global instructions
+# file), Cline (manual); Gemini CLI (deprecated upstream, superseded by Antigravity),
+# Amp and Crush (not supported, by choice).
 harness_targets() {
   cat <<TABLE
 # codex: ~/.codex/AGENTS.md (\$CODEX_HOME relocates it).
 #   docs: learn.chatgpt.com/docs/agent-configuration/agents-md ; source: openai/codex codex-rs/codex-home/src/instructions/mod.rs
 codex|${CODEX_HOME:-$HOME/.codex}/AGENTS.md|if-bin
-# gemini: ~/.gemini/GEMINI.md. Its @import is sandboxed to ~/.gemini, hence the flat file.
-#   docs: google-gemini/gemini-cli docs/cli/gemini-md.md
-gemini|$HOME/.gemini/GEMINI.md|if-bin
+# agy (Antigravity CLI): ~/.gemini/AGENTS.md. Its global rules are ~/.gemini/AGENTS.md and
+# ~/.gemini/GEMINI.md (plus ~/.gemini/config/ copies and rules/*.md); only one is written,
+# else both files load (rules are cumulative). AGENTS.md is the name its docs recommend, and GEMINI.md is
+# also written by Gemini CLI and the Antigravity IDE. Rule files are capped at 24,000
+# bytes after expanding includes, truncated on line boundaries.
+#   docs: antigravity.google/docs/rules (section "Managing rules in Antigravity CLI") ;
+#   also embedded in the agy binary (Homebrew cask antigravity-cli 1.3.2): its rules doc
+#   text, per-file limit text and CHANGELOG entry on ~/.gemini/{GEMINI,AGENTS}.md.
+agy|$HOME/.gemini/AGENTS.md|if-bin
 # opencode: ~/.config/opencode/AGENTS.md. ALWAYS written: with no file here OpenCode falls
 # back to ~/.claude/CLAUDE.md and injects its literal @import lines as instructions.
 #   docs: opencode.ai/docs/rules ; source: sst/opencode packages/opencode/src/session/instruction.ts
@@ -172,10 +179,6 @@ opencode|$HOME/.config/opencode/AGENTS.md|always
 # copilot (CLI): ~/.copilot/copilot-instructions.md (\$COPILOT_HOME relocates it).
 #   docs: github/docs content/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md
 copilot|${COPILOT_HOME:-$HOME/.copilot}/copilot-instructions.md|if-bin
-# amp + crush: both read ~/.config/AGENTS.md (each also has its own dir file, not written
-# here), so one shared file; written if either is installed.
-#   docs: ampcode.com/docs/customize/agents-md ; source: charmbracelet/crush internal/config/load.go
-amp crush|$HOME/.config/AGENTS.md|if-bin
 # goose: ~/.config/goose/AGENTS.md (it also reads ~/.agents/AGENTS.md; only one is written).
 #   docs: goose-docs.ai/docs/guides/context-engineering/using-goosehints ; source: block/goose crates/goose/src/hints/load_hints.rs
 goose|$HOME/.config/goose/AGENTS.md|if-bin

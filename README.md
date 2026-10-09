@@ -59,10 +59,9 @@ always written (so it never falls back to the `@`-import `CLAUDE.md`).
 | Harness (binary) | Flat file written |
 |---|---|
 | Codex (`codex`) | `~/.codex/AGENTS.md` (`$CODEX_HOME` honoured) |
-| Gemini CLI (`gemini`) | `~/.gemini/GEMINI.md` |
+| Antigravity CLI (`agy`) | `~/.gemini/AGENTS.md` (one of its two global files; only one is written so rules load once) |
 | OpenCode (`opencode`, always) | `~/.config/opencode/AGENTS.md` |
 | Copilot CLI (`copilot`) | `~/.copilot/copilot-instructions.md` (`$COPILOT_HOME` honoured) |
-| Amp (`amp`) / Crush (`crush`) | `~/.config/AGENTS.md` (shared; written if either is installed) |
 | Goose (`goose`) | `~/.config/goose/AGENTS.md` |
 
 The table lives in one place, commented with each harness's doc source, in
@@ -83,6 +82,13 @@ The table lives in one place, commented with each harness's doc source, in
 - Windsurf: global rules are capped at 6,000 characters, far below the composed size.
 - Aider: no global instructions file (`read:` in `~/.aider.conf.yml` is the closest thing).
 - Cline: reads `~/.agents/AGENTS.md` or `~/Documents/Cline/Rules`; not generated here.
+
+**Not supported, by choice:**
+
+- Gemini CLI: deprecated upstream; replaced by Antigravity CLI (above).
+- Amp and Crush: not covered.
+
+Removing a row from the table does not delete files it wrote earlier; delete those by hand.
 
 **Keeping a machine in sync:** run `sync.sh` from cron (example: daily at 08:00).
 
