@@ -11,13 +11,21 @@
 # machine overlays on top should call this script with the flags below rather
 # than keep its own copy (two copies drift apart).
 #
-# Usage: deploy.sh [--machines-dir <dir>] [--import <file>]... [--require-machine]
+# Usage: deploy.sh [--machines-dir <dir>] [--import <file>]... [--require-machine] [--harnesses]
 #   --machines-dir <dir>  where to look for <hostname>.md (default: <this dir>/machines)
 #   --import <file>       repeatable; extra @import placed after rules.md, before the
 #                         machine overlay. A missing file is an error.
 #   --require-machine     missing machine overlay is an error (default: skip it)
+#   --harnesses           ALSO write a flat copy (rules.md + --import files + machine
+#                         overlay concatenated, no @imports) to the global instructions
+#                         file of every other coding harness found on PATH — see the
+#                         HARNESS_TARGETS table below. Default off.
 #
-# Idempotent: re-running just rewrites the generated file.
+# Why flat: only Claude Code resolves @imports in a global file; Codex, Gemini, OpenCode
+# etc. would see the literal "@~/..." lines (or, for Gemini/Copilot, skip the import).
+#
+# Idempotent: re-running just rewrites the generated file(s); flat copies are left
+# untouched (byte-identical, no new backup) when their content has not changed.
 #
 # Must run on macOS bash 3.2: no associative arrays, and "${arr[@]}" on an empty
 # array is an error under `set -u`, so the array is only expanded behind a count check.
@@ -30,9 +38,10 @@ MACHINES_DIR="$CLAUDE_DIR/machines"
 REQUIRE_MACHINE=0
 IMPORTS=()
 TARGET="$HOME/.claude/CLAUDE.md"
+HARNESSES=0
 
 usage() {
-  echo "usage: deploy.sh [--machines-dir <dir>] [--import <file>]... [--require-machine]" >&2
+  echo "usage: deploy.sh [--machines-dir <dir>] [--import <file>]... [--require-machine] [--harnesses]" >&2
 }
 
 while [ $# -gt 0 ]; do
@@ -45,6 +54,8 @@ while [ $# -gt 0 ]; do
       IMPORTS+=("$2"); shift 2 ;;
     --require-machine)
       REQUIRE_MACHINE=1; shift ;;
+    --harnesses)
+      HARNESSES=1; shift ;;
     *)
       echo "!! Unknown argument: $1" >&2; usage; exit 1 ;;
   esac
@@ -128,3 +139,118 @@ if [ -f "$MACHINE_FILE" ]; then
 else
   echo "   imports: $summary (no ${HOST}.md in $MACHINES_DIR — see machines/example.md to add one)"
 fi
+
+# ---------------------------------------------------------------------------
+# --harnesses: flat copies for every other coding harness.
+# ---------------------------------------------------------------------------
+[ "$HARNESSES" -eq 1 ] || exit 0
+
+# THE target table — the one place that knows where each harness reads its global
+# instructions. One row per file written, one path per harness (so no harness loads
+# the same content twice).
+#   row:  <binaries, space-separated> | <target path> | <when>
+#   when: "if-bin"  write only if one of the binaries is on PATH
+#         "always"  write regardless (see opencode)
+# Rows are unquoted-heredoc lines, so $HOME / ${VAR:-default} expand; '#' lines are
+# comments. Doc sources are in the comments (checked 2026-10-09).
+#
+# Not generated (no file-based global rules, or too small a cap): Cursor (User Rules
+# are GUI-only), Copilot on github.com (personal-instructions text box), Windsurf
+# (6,000-char global cap), Aider (no global instructions file), Cline (manual).
+harness_targets() {
+  cat <<TABLE
+# codex: ~/.codex/AGENTS.md (\$CODEX_HOME relocates it).
+#   docs: learn.chatgpt.com/docs/agent-configuration/agents-md ; source: openai/codex codex-rs/codex-home/src/instructions/mod.rs
+codex|${CODEX_HOME:-$HOME/.codex}/AGENTS.md|if-bin
+# gemini: ~/.gemini/GEMINI.md. Its @import is sandboxed to ~/.gemini, hence the flat file.
+#   docs: google-gemini/gemini-cli docs/cli/gemini-md.md
+gemini|$HOME/.gemini/GEMINI.md|if-bin
+# opencode: ~/.config/opencode/AGENTS.md. ALWAYS written: with no file here OpenCode falls
+# back to ~/.claude/CLAUDE.md and injects its literal @import lines as instructions.
+#   docs: opencode.ai/docs/rules ; source: sst/opencode packages/opencode/src/session/instruction.ts
+opencode|$HOME/.config/opencode/AGENTS.md|always
+# copilot (CLI): ~/.copilot/copilot-instructions.md (\$COPILOT_HOME relocates it).
+#   docs: github/docs content/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions.md
+copilot|${COPILOT_HOME:-$HOME/.copilot}/copilot-instructions.md|if-bin
+# amp + crush: both read ~/.config/AGENTS.md (each also has its own dir file, not written
+# here), so one shared file; written if either is installed.
+#   docs: ampcode.com/docs/customize/agents-md ; source: charmbracelet/crush internal/config/load.go
+amp crush|$HOME/.config/AGENTS.md|if-bin
+# goose: ~/.config/goose/AGENTS.md (it also reads ~/.agents/AGENTS.md; only one is written).
+#   docs: goose-docs.ai/docs/guides/context-engineering/using-goosehints ; source: block/goose crates/goose/src/hints/load_hints.rs
+goose|$HOME/.config/goose/AGENTS.md|if-bin
+TABLE
+}
+
+# Render the flat file to stdout: generated-by header (the backup guard below relies
+# on it), then each source in the same order as the @imports above — rules.md, the
+# --import files, the machine overlay — each behind a marker naming its source.
+render_flat() {
+  echo "<!-- Generated by deploy.sh — do NOT edit by hand. -->"
+  echo "<!-- Flat copy for non-Claude harnesses; Claude Code uses @imports instead. -->"
+  echo "<!-- Edit the source files named below, then re-run deploy.sh --harnesses. -->"
+  flat_part "$CLAUDE_DIR/rules.md"
+  if [ "${#IMPORTS[@]}" -gt 0 ]; then
+    for f in "${IMPORTS[@]}"; do
+      flat_part "$f"
+    done
+  fi
+  if [ -f "$MACHINE_FILE" ]; then
+    flat_part "$MACHINE_FILE"
+  fi
+}
+
+# One source: blank line, marker, content (newline-terminated even if the file isn't).
+flat_part() {
+  echo
+  echo "<!-- source: $(tilde "$1") -->"
+  cat "$1"
+  if [ -n "$(tail -c1 "$1")" ]; then echo; fi
+}
+
+# Build the flat file once; every target gets a copy of it. Temp file is mode 600
+# (mktemp default) because the content can include a private layer.
+FLAT_TMP="$(mktemp "${TMPDIR:-/tmp}/deploy-flat.XXXXXX")"
+trap 'rm -f "$FLAT_TMP"' EXIT
+render_flat > "$FLAT_TMP"
+
+written=0
+while IFS='|' read -r bins path when; do
+  case "$bins" in ''|'#'*) continue ;; esac
+
+  present=""
+  for b in $bins; do
+    if command -v "$b" >/dev/null 2>&1; then present="$b"; break; fi
+  done
+  if [ -z "$present" ] && [ "$when" != "always" ]; then
+    echo ">> skip $path ($bins not on PATH)"
+    continue
+  fi
+
+  # A shared path appears once in the table, so no duplicate-write guard is needed.
+  mkdir -p "$(dirname "$path")"
+
+  # Same guard as ~/.claude/CLAUDE.md: back up a hand-written file, never a generated one.
+  if [ -f "$path" ] && ! grep -q "Generated by .*deploy.sh" "$path" 2>/dev/null; then
+    backup="${path}.bak.$(date +%Y%m%d%H%M%S)"
+    cp "$path" "$backup"
+    echo ">> backed up existing $path -> $backup"
+  fi
+
+  if [ -f "$path" ] && cmp -s "$FLAT_TMP" "$path"; then
+    chmod 600 "$path"
+    echo ">> unchanged $path"
+  else
+    # Temp file in the target's own dir + mv = atomic replace; a failed run never
+    # leaves a half-written instructions file. umask 077 keeps the temp private.
+    part="${path}.tmp.$$"
+    ( umask 077; cp "$FLAT_TMP" "$part" )
+    chmod 600 "$part"
+    mv "$part" "$path"
+    echo ">> wrote $path"
+  fi
+  written=$((written + 1))
+done <<EOF
+$(harness_targets)
+EOF
+echo "   flat copies: $written target(s) up to date"
