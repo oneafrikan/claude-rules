@@ -255,6 +255,8 @@ Apply this to all phrasing that frames a question as belonging to the user: "onl
 
 **Don't default to doing everything in the main thread — check for a specialist first.**
 
+> Routing below assumes [the-grid](https://github.com/oneafrikan/the-grid) agents (`grid-*`, `core-*`) are installed. If not, swap in your own agents.
+
 **Default: delegate all technical work to a specialist agent.** Check the Agent tool's list for a match before touching code, config, infra, tests, docs, or research.
 - The `grid-*` agents (the-grid) are the first choice for technical work; `core-*` agents cover platform/dev-env, research, and triage.
 - Rough routing:
