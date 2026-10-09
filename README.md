@@ -24,11 +24,24 @@ cp ~/claude-rules/machines/example.md ~/claude-rules/machines/$(hostname -s).md 
 `deploy.sh` is idempotent and backs up any pre-existing hand-written
 `~/.claude/CLAUDE.md` before overwriting.
 
-**Using this repo as a submodule of a private dev-env repo, with an addendum +
-per-machine overlay layered on top of `rules.md`?** Use that repo's own
-`deploy.sh`/`sync.sh` instead (e.g. `claude-private/sync.sh`) — this repo's
-`deploy.sh`/`sync.sh` only know about `rules.md` + `machines/<host>.md` and will
-silently drop anything else layered on top.
+**Layering your own files on top** (e.g. a private repo that holds an addendum and
+per-machine overlays)? Call this same `deploy.sh` with flags rather than keeping a
+copy of it:
+
+```bash
+~/claude-rules/deploy.sh \
+  --machines-dir /path/to/my/machines \
+  --import /path/to/my/addendum.md \
+  --require-machine
+```
+
+| Flag | Effect |
+|------|--------|
+| `--machines-dir <dir>` | Look for `<hostname>.md` in `<dir>` (default: `machines/` here). |
+| `--import <file>` | Repeatable. Adds an `@import` after `rules.md` and before the machine overlay, in the order given. Missing file = error. |
+| `--require-machine` | Missing machine overlay = error (default: skip it). |
+
+Unknown flags print usage and exit 1. A leading `$HOME` in import paths is written as `~`.
 
 ## How it loads
 
