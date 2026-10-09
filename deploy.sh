@@ -19,7 +19,7 @@
 #   --harnesses           ALSO write a flat copy (rules.md + --import files + machine
 #                         overlay concatenated, no @imports) to the global instructions
 #                         file of every other coding harness found on PATH — see the
-#                         HARNESS_TARGETS table below. Default off.
+#                         harness_targets() table below. Default off.
 #
 # Why flat: only Claude Code resolves @imports in a global file; Codex, OpenCode etc.
 # would see the literal "@~/..." lines (or, for Copilot, skip the import).
