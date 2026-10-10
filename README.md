@@ -23,6 +23,7 @@ cp ~/claude-rules/machines/example.md ~/claude-rules/machines/$(hostname -s).md 
 
 `deploy.sh` is idempotent and backs up any pre-existing hand-written
 `~/.claude/CLAUDE.md` before overwriting.
+It is plain bash (compatible with macOS's bash 3.2) and is used on both macOS and Linux.
 
 **Layering your own files on top** (e.g. a private repo that holds an addendum and
 per-machine overlays)? Call this same `deploy.sh` with flags rather than keeping a
@@ -74,11 +75,14 @@ The table lives in one place, commented with each harness's doc source, in
 
 **Size limit (Antigravity CLI):** `agy` truncates any single rule file over 24,000 bytes
 (on line boundaries) and shares a ~20,000-token budget across always-on and global rules.
-The composed flat file is currently ~22.4 KB (`wc -c ~/.codex/AGENTS.md`; `rules.md`
-alone is ~17.7 KB), so growth in `rules.md` or in layered `--import` files can silently
-cut the tail — the machine overlay comes last. Known, deliberately not handled by
-`deploy.sh` yet. Sources: <https://www.antigravity.google/docs/rules/> and the rules text
-embedded in the `agy` 1.3.2 binary.
+The flat file is `rules.md` (~17.7 KB) plus every `--import` file plus the machine overlay,
+so **its size varies per machine**: the overlay differs, so the cap can be hit on one machine
+and not on another (observed: ~22.4 KB on one, ~24.7 KB on another, with the same `rules.md`
+and addendum). Growth in `rules.md` or in `--import` files hits every machine; the overlay
+comes last, so it is what gets cut. Check each machine with `wc -c ~/.gemini/AGENTS.md`.
+Known, deliberately not handled by `deploy.sh` yet. Sources:
+<https://www.antigravity.google/docs/rules/> and the rules text embedded in the `agy` 1.3.2
+binary.
 
 - Files are mode `0600` (the content can include a private layer), written via a temp
   file + `mv`, and a pre-existing hand-written file is backed up as `<file>.bak.<timestamp>`.
@@ -103,7 +107,8 @@ embedded in the `agy` 1.3.2 binary.
 
 Removing a row from the table does not delete files it wrote earlier; delete those by hand.
 
-**Keeping a machine in sync:** run `sync.sh` from cron (example: daily at 08:00). It runs
+**Keeping a machine in sync:** run `sync.sh` from cron (example: daily at 08:00) or, where
+there is no cron, a systemd user timer. It runs
 `deploy.sh` without flags, so flat copies for other harnesses are only refreshed by calling
 `deploy.sh --harnesses` yourself (e.g. from your own wrapper script).
 
