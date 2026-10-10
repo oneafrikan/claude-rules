@@ -102,12 +102,11 @@ binary.
 - Copilot on github.com: personal instructions text box.
 - Windsurf: global rules are capped at 6,000 characters, far below the composed size.
 - Aider: no global instructions file (`read:` in `~/.aider.conf.yml` is the closest thing).
-- Cline: reads `~/.agents/AGENTS.md` or `~/Documents/Cline/Rules`; not generated here.
 
 **Not supported, by choice:**
 
 - Gemini CLI: deprecated upstream; replaced by Antigravity CLI (above).
-- Amp and Crush: not covered.
+- Amp, Crush and Cline (a VS Code extension agent): not covered; no target is generated for them.
 
 Removing a row from the table does not delete files it wrote earlier; delete those by hand.
 
