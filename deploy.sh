@@ -18,7 +18,8 @@
 #   --require-machine     missing machine overlay is an error (default: skip it)
 #   --harnesses           ALSO write a flat copy (rules.md + --import files + machine
 #                         overlay concatenated, no @imports) to the global instructions
-#                         file of every other coding harness found on PATH — see the
+#                         file of every other coding harness found on PATH or in the standard
+#                         install dirs (HARNESS_BIN_DIRS, so cron's minimal PATH works) — see the
 #                         harness_targets() table below. Default off.
 #
 # Why flat: only Claude Code resolves @imports in a global file; Codex, OpenCode etc.
@@ -149,7 +150,7 @@ fi
 # instructions. One row per file written, one path per harness (so no harness loads
 # the same content twice).
 #   row:  <binaries, space-separated> | <target path> | <when>
-#   when: "if-bin"  write only if one of the binaries is on PATH
+#   when: "if-bin"  write only if one of the binaries is on PATH or in HARNESS_BIN_DIRS (below)
 #         "always"  write regardless (see opencode)
 # Rows are unquoted-heredoc lines, so $HOME / ${VAR:-default} expand; '#' lines are
 # comments. Doc sources are in the comments (checked 2026-10-09).
@@ -217,16 +218,33 @@ FLAT_TMP="$(mktemp "${TMPDIR:-/tmp}/deploy-flat.XXXXXX")"
 trap 'rm -f "$FLAT_TMP"' EXIT
 render_flat > "$FLAT_TMP"
 
+# Where harness binaries land that a minimal PATH (cron: /usr/bin:/bin) does not cover.
+# Probe-only: PATH is never changed, so nothing else in this run sees these dirs.
+#   Homebrew (Apple Silicon, Intel/Linux prefix), ~/.local/bin (vendor installers and
+#   release-binary installs), ~/.opencode/bin (OpenCode's own installer), npm global
+#   prefix (~/.npm-global), mise shims.
+HARNESS_BIN_DIRS="/opt/homebrew/bin /usr/local/bin $HOME/.local/bin $HOME/.opencode/bin $HOME/.npm-global/bin $HOME/.local/share/mise/shims"
+
+# bin_present <name>: true if on PATH or executable in one of HARNESS_BIN_DIRS.
+bin_present() {
+  command -v "$1" >/dev/null 2>&1 && return 0
+  local d
+  for d in $HARNESS_BIN_DIRS; do
+    [ -x "$d/$1" ] && [ ! -d "$d/$1" ] && return 0
+  done
+  return 1
+}
+
 written=0
 while IFS='|' read -r bins path when; do
   case "$bins" in ''|'#'*) continue ;; esac
 
   present=""
   for b in $bins; do
-    if command -v "$b" >/dev/null 2>&1; then present="$b"; break; fi
+    if bin_present "$b"; then present="$b"; break; fi
   done
   if [ -z "$present" ] && [ "$when" != "always" ]; then
-    echo ">> skip $path ($bins not on PATH)"
+    echo ">> skip $path ($bins not on PATH or in the standard install dirs)"
     continue
   fi
 

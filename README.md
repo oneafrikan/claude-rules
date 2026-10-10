@@ -54,8 +54,12 @@ then each `--import` file, then the machine overlay, concatenated with a
 `<!-- source: ... -->` marker before each, under a three-line generated-by header — to
 every target below.
 
-A target is written only if its harness binary is on `PATH`, except OpenCode, which is
-always written (so it never falls back to the `@`-import `CLAUDE.md`).
+A target is written only if its harness binary is on `PATH` or in one of the standard
+install dirs listed in `HARNESS_BIN_DIRS` in `deploy.sh` (Homebrew, `/usr/local/bin`,
+`~/.local/bin`, `~/.opencode/bin`, `~/.npm-global/bin`, mise shims), except OpenCode, which
+is always written (so it never falls back to the `@`-import `CLAUDE.md`). The dir probe
+exists because cron runs with `PATH=/usr/bin:/bin`: without it a scheduled run skips
+harnesses that a manual run finds. It only checks for the binary; `PATH` is not changed.
 
 | Harness (binary) | Flat file written |
 |---|---|
