@@ -225,6 +225,12 @@ render_flat > "$FLAT_TMP"
 #   prefix (~/.npm-global), mise shims.
 HARNESS_BIN_DIRS="/opt/homebrew/bin /usr/local/bin $HOME/.local/bin $HOME/.opencode/bin $HOME/.npm-global/bin $HOME/.local/share/mise/shims"
 
+# Antigravity CLI (agy) truncates any rule file over this many bytes, on line boundaries,
+# so the tail (the machine overlay, which comes last) is what gets cut. The flat file's
+# size differs per machine because the overlay differs. We only warn; the file is still
+# written. Source: antigravity.google/docs/rules.
+AGY_RULE_CAP_BYTES=24000
+
 # bin_present <name>: true if on PATH or executable in one of HARNESS_BIN_DIRS.
 bin_present() {
   command -v "$1" >/dev/null 2>&1 && return 0
@@ -257,6 +263,17 @@ while IFS='|' read -r bins path when; do
     cp "$path" "$backup"
     echo ">> backed up existing $path -> $backup"
   fi
+
+  # Size guard: warn (stderr, so it lands in sync.log too) when the agy row would exceed its
+  # cap. Checked on every run, including "unchanged", so an oversized file is never silent.
+  case " $bins " in
+    *" agy "*)
+      flat_bytes="$(wc -c < "$FLAT_TMP")"
+      flat_bytes=$((flat_bytes + 0))   # BSD wc pads with spaces; arithmetic strips them
+      if [ "$flat_bytes" -gt "$AGY_RULE_CAP_BYTES" ]; then
+        echo "!! WARNING: flat rules file is $flat_bytes bytes, over the $AGY_RULE_CAP_BYTES-byte cap for Antigravity CLI (agy); agy will truncate $path. Trim the machine overlay or --import files." >&2
+      fi ;;
+  esac
 
   if [ -f "$path" ] && cmp -s "$FLAT_TMP" "$path"; then
     chmod 600 "$path"

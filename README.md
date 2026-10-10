@@ -80,7 +80,11 @@ so **its size varies per machine**: the overlay differs, so the cap can be hit o
 and not on another (observed: ~22.4 KB on one, ~24.7 KB on another, with the same `rules.md`
 and addendum). Growth in `rules.md` or in `--import` files hits every machine; the overlay
 comes last, so it is what gets cut. Check each machine with `wc -c ~/.gemini/AGENTS.md`.
-Known, deliberately not handled by `deploy.sh` yet. Sources:
+`deploy.sh --harnesses` warns on stderr (`!! WARNING: flat rules file is N bytes, over the
+24000-byte cap for Antigravity CLI (agy) ...`) whenever the `agy` row is written and the flat
+file exceeds `AGY_RULE_CAP_BYTES` (one constant in `deploy.sh`). It warns on every run, even
+when the file is unchanged, and still writes the file: warn, don't fail. Wrappers that log
+`deploy.sh` output with `2>&1` (like a sync script) capture the warning. Sources:
 <https://www.antigravity.google/docs/rules/> and the rules text embedded in the `agy` 1.3.2
 binary.
 
