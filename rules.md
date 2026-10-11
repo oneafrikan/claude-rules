@@ -298,6 +298,31 @@ This closes the gap where prior work goes unnoticed at session start, and a PR s
 
 ---
 
+## 17. Goal Before Plan, Two Strikes, Access First
+
+**A plan someone else chose is not the goal. Stop following it when it stops paying.**
+
+Goal first:
+- When a session starts from a handoff, runbook, or spec, restate the goal in one line before following its plan.
+- Name the simplest route to that goal in the first reply.
+- Flag any plan step that is heavier than the goal needs.
+- Do not repeat ceremony from the plan (nights, waves, pre-reqs) unless the user asks for it.
+
+Two strikes:
+- Count unexpected defects in one chain of fixes.
+- At the second, stop patching.
+- Say in one line what is broken and what the simpler alternative is, then ask.
+- Never call an unverified item "non-blocking". Verify it before running real work through it.
+
+Access first:
+- If a task needs access you lack, solve that before anything else.
+- Propose one scoped, reversible grant (for example a one-user sudoers rule) with the exact command and what it does and does not allow.
+- Do not turn the user into a paste relay. Batch any manual steps into one block.
+
+Origin: 2026-10-10/11, the autonomous issue-loop setup. It cost about 36 hours and merged nothing. Specialist agents in worktrees merged 7 groups in about 2 hours.
+
+---
+
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
 ---
