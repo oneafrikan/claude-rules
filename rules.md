@@ -270,11 +270,13 @@ Apply this to all phrasing that frames a question as belonging to the user: "onl
   - shell, dotfiles, bootstrap, cross-OS → `core-platform-engineer`
   - research → `core-researcher`
   - smallest-possible diff → `grid-ponytail`
-  - multi-step features → `grid-tech-lead` to coordinate, rather than hand-sequencing specialists
+  - multi-step features that need a PRD and a release gate → `grid-tech-lead` to coordinate, rather than hand-sequencing specialists (not for small fixes)
 - Delegating is how context stays small per agent. The main session orchestrates: scopes the task, picks the agent, reviews the result.
 - Specialist briefs must be self-contained: goal, files, constraints, success check.
-- The main session does the work itself only when it is very trivial (a one-line edit, a single read-only lookup) or no specialist fits.
-- When unsure whether it's trivial, delegate. Main-session work on "small" tasks has repeatedly needed debugging once the real specialists picked it up.
+- **Trivial work is done in the main thread, with no delegation.** Trivial = one file, a few lines, no new behaviour or dependency, verified by one command (a one-line fix, a config value, a typo, a read-only lookup). No PRD, no orchestrator, no spec: make the change, run the check, report.
+- **Small but not trivial** (a few files, still a quick fix): `grid-ponytail` directly, or the main thread. Never `grid-tech-lead` for this — it enforces PRD-first and a release gate that small changes do not need.
+- The main session also does the work itself when no specialist fits.
+- When unsure, start light and escalate only if the verifying command fails twice (see section 17, two strikes).
 
 This keeps output at specialist quality and keeps the main agent focused on orchestration rather than every task itself.
 
