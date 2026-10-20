@@ -273,10 +273,12 @@ Apply this to all phrasing that frames a question as belonging to the user: "onl
   - multi-step features that need a PRD and a release gate → `grid-tech-lead` to coordinate, rather than hand-sequencing specialists (not for small fixes)
 - Delegating is how context stays small per agent. The main session orchestrates: scopes the task, picks the agent, reviews the result.
 - Specialist briefs must be self-contained: goal, files, constraints, success check.
-- **Trivial work is done in the main thread, with no delegation.** Trivial = one file, a few lines, no new behaviour or dependency, verified by one command (a one-line fix, a config value, a typo, a read-only lookup). No PRD, no orchestrator, no spec: make the change, run the check, report.
-- **Small but not trivial** (a few files, still a quick fix): `grid-ponytail` directly, or the main thread. Never `grid-tech-lead` for this — it enforces PRD-first and a release gate that small changes do not need.
-- The main session also does the work itself when no specialist fits.
-- When unsure, start light and escalate only if the verifying command fails twice (see section 17, two strikes).
+- **The main session does not write code, however small.** It burns context window. It scopes the task, picks a specialist, hands over a self-contained brief and reads the result. Read-only lookups (a grep, a file read) may stay in the main thread.
+- **A small change goes to one specialist with its own context, with no process.** Use `grid-ponytail` for the smallest diff, otherwise the specialist for the stack. No PRD, no spec, no orchestrator and no review gate unless the user asks.
+- **Several independent small fixes fan out:** one specialist per fix, in parallel, each on its own branch or worktree, then merge. Use `gsd` for this once it exists. One fix is one agent, with no fan-out.
+- **`grid-tech-lead` is only for multi-step features that need a PRD and a release gate.** Never use it for small fixes.
+- **The main session writes code only when no specialist fits.**
+- **When unsure how big a change is, treat it as small.** Escalate only if the verifying command fails twice (section 17, two strikes).
 
 This keeps output at specialist quality and keeps the main agent focused on orchestration rather than every task itself.
 
