@@ -323,6 +323,24 @@ Origin: 2026-10-10/11, the autonomous issue-loop setup. It cost about 36 hours a
 
 ---
 
+## 18. Pre-Deploy Check Before Changing Production Code
+
+**Before pulling, merging, or deploying code onto a production checkout, check what it brings in. Report before acting.**
+
+- List what is coming: `git log --stat <old>..<new>`. Read the commit subjects, not only the count.
+- Grep the diff for anything that changes data or runtime:
+  - schema/version constants (`SCHEMA_VERSION`, `*_HEADER`, migration files)
+  - dependency files (`requirements*.txt`, `package*.json`, lockfiles)
+  - new env vars, secrets, config keys
+  - cron entries, run scripts (`run_all.sh`), path/depth constants
+- Read the repo's ops docs (`CLAUDE.md`, `CRON.md`, `DEPLOY.md`, `PRODUCTION.md`, changelog) for documented upgrade steps.
+- Any hit: say what it will do on first run and what the fix is, before the pull.
+- If the operator waives a check: name exactly what risk it skips. Never let a waiver pass silently.
+
+Origin: 2026-10-20, guide-server flatten. A 56-commit hubspot-data pull was waived without review; a call-audit `SCHEMA_VERSION` 6→7 bump then failed the first delta run. The repo's own docs said a full rebuild was needed.
+
+---
+
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
 ---
