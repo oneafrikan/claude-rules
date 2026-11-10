@@ -176,9 +176,8 @@ One line per section of [`rules.md`](rules.md).
 
 ## Forking / adapting
 
-Fork the repo and edit `rules.md` to taste. Two things in it are specific to its author:
+Fork the repo and edit `rules.md` to taste. One thing in it is specific to its author:
 
-- The SOP section names "Gareth" — change it to you.
 - Rule 15 assumes [the-grid](https://github.com/oneafrikan/the-grid) agents (`grid-*`, `core-*`) are installed — swap in your own agents or drop the rule.
 
 ## License

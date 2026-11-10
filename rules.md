@@ -323,8 +323,6 @@ Access first:
 - Propose one scoped, reversible grant (for example a one-user sudoers rule) with the exact command and what it does and does not allow.
 - Do not turn the user into a paste relay. Batch any manual steps into one block.
 
-Origin: 2026-10-10/11, the autonomous issue-loop setup. It cost about 36 hours and merged nothing. Specialist agents in worktrees merged 7 groups in about 2 hours.
-
 ---
 
 ## 18. Pre-Deploy Check Before Changing Production Code
@@ -341,8 +339,6 @@ Origin: 2026-10-10/11, the autonomous issue-loop setup. It cost about 36 hours a
 - Any hit: say what it will do on first run and what the fix is, before the pull.
 - If the operator waives a check: name exactly what risk it skips. Never let a waiver pass silently.
 
-Origin: 2026-10-20, guide-server flatten. A 56-commit hubspot-data pull was waived without review; a call-audit `SCHEMA_VERSION` 6→7 bump then failed the first delta run. The repo's own docs said a full rebuild was needed.
-
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
@@ -352,7 +348,7 @@ Origin: 2026-10-20, guide-server flatten. A 56-commit hubspot-data pull was waiv
 ## Standard Operating Procedure
 
 - ALWAYS, at the start of every session, identify every directory that will need to be accessed to complete the work. List them all upfront and ask for permission to access them before starting. This lets the user work in parallel without per-action permission prompts.
-- ALWAYS, ALWAYS, ALWAYS comment your code — assume future you or Gareth will need the comments to know what's going on.
+- ALWAYS, ALWAYS, ALWAYS comment your code — assume future you or the next engineer will need the comments to know what's going on.
 - ALWAYS create a TODO list when working on complex tasks to track progress — use TODO.md.
 - ALWAYS create a README.md file if one does not exist. Make it human readable.
 - ALWAYS create a CLAUDE.md file for future sessions, so they are easier to pick up.
