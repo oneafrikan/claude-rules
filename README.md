@@ -75,9 +75,9 @@ The table lives in one place, commented with each harness's doc source, in
 
 **Size limit (Antigravity CLI):** `agy` truncates any single rule file over 24,000 bytes
 (on line boundaries) and shares a ~20,000-token budget across always-on and global rules.
-The flat file is `rules.md` (~17.7 KB) plus every `--import` file plus the machine overlay,
+The flat file is `rules.md` (~18.1 KB) plus every `--import` file plus the machine overlay,
 so **its size varies per machine**: the overlay differs, so the cap can be hit on one machine
-and not on another (observed: ~22.4 KB on one, ~24.7 KB on another, with the same `rules.md`
+and not on another (estimated from overlay sizes: ~22.3 KB on one, ~24.2 KB on another, with the same `rules.md`
 and addendum). Growth in `rules.md` or in `--import` files hits every machine; the overlay
 comes last, so it is what gets cut. Check each machine with `wc -c ~/.gemini/AGENTS.md`.
 `deploy.sh --harnesses` warns on stderr (`!! WARNING: flat rules file is N bytes, over the
