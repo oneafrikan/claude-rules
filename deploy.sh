@@ -37,6 +37,7 @@ CLAUDE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOST="$(hostname -s)"
 MACHINES_DIR="$CLAUDE_DIR/machines"
 REQUIRE_MACHINE=0
+MACHINES_DIR_GIVEN=0
 IMPORTS=()
 TARGET="$HOME/.claude/CLAUDE.md"
 HARNESSES=0
@@ -49,7 +50,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --machines-dir)
       [ $# -ge 2 ] || { echo "!! --machines-dir needs a value" >&2; usage; exit 1; }
-      MACHINES_DIR="$2"; shift 2 ;;
+      MACHINES_DIR="$2"; MACHINES_DIR_GIVEN=1; shift 2 ;;
     --import)
       [ $# -ge 2 ] || { echo "!! --import needs a value" >&2; usage; exit 1; }
       IMPORTS+=("$2"); shift 2 ;;
@@ -93,6 +94,12 @@ if [ "$REQUIRE_MACHINE" -eq 1 ] && [ ! -f "$MACHINE_FILE" ]; then
   echo "!! No machine file for host '$HOST': $MACHINE_FILE" >&2
   echo "   Create it (see machines/example.md as a template), then re-run." >&2
   exit 1
+fi
+
+# A mistyped --machines-dir otherwise looks like "no overlay for this host" — say so.
+# Runs after the --require-machine error above, so that path never double-prints.
+if [ "$MACHINES_DIR_GIVEN" -eq 1 ] && [ ! -d "$MACHINES_DIR" ]; then
+  echo "!! WARNING: --machines-dir '$MACHINES_DIR' is not a directory; no machine overlay will be used" >&2
 fi
 
 mkdir -p "$HOME/.claude"

@@ -38,7 +38,7 @@ copy of it:
 
 | Flag | Effect |
 |------|--------|
-| `--machines-dir <dir>` | Look for `<hostname>.md` in `<dir>` (default: `machines/` here). |
+| `--machines-dir <dir>` | Look for `<hostname>.md` in `<dir>` (default: `machines/` here). A directory that does not exist prints a warning. |
 | `--import <file>` | Repeatable. Adds an `@import` after `rules.md` and before the machine overlay, in the order given. Missing file = error. |
 | `--require-machine` | Missing machine overlay = error (default: skip it). |
 | `--harnesses` | Also write a flat copy to the global instructions file of other coding harnesses (see [Other harnesses](#other-harnesses---harnesses)). Default off. |
