@@ -43,7 +43,7 @@ copy of it:
 | `--require-machine` | Missing machine overlay = error (default: skip it). |
 | `--harnesses` | Also write a flat copy to the global instructions file of other coding harnesses (see [Other harnesses](#other-harnesses---harnesses)). Default off. |
 
-Unknown flags print usage and exit 1. A leading `$HOME` in import paths is written as `~`.
+Unknown flags print usage and exit 1. A leading `$HOME` in import paths is written as `~`. For a starting point to pass to `--import`, see [`examples/dev-env-addendum.md`](examples/dev-env-addendum.md).
 
 ### Other harnesses (`--harnesses`)
 
